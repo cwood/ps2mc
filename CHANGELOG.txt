@@ -8,6 +8,9 @@ versioning; dates are ISO 8601.
 Unreleased
 ----------
 
+
+0.1.0 — 2026-09-19
+------------------
 Added
   - Memory card filesystem: superblock, two-level indirect FAT, directory
     entries, file read and write, directory creation and removal.
