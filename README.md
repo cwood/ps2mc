@@ -1,5 +1,8 @@
 # ps2mc
 
+[![ci](https://github.com/cwood/ps2mc/actions/workflows/ci.yml/badge.svg)](https://github.com/cwood/ps2mc/actions/workflows/ci.yml)
+[![licence: GPL-3.0-or-later](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue)](LICENSE)
+
 Read and write PlayStation 2 memory card images.
 
 `ps2mc` understands both page layouts found in the wild, can mount a card as a
@@ -23,14 +26,33 @@ probes each stride and keeps the one that yields a coherent root directory.
 
 ## Install
 
+Download an archive for your platform from the
+[releases page](https://github.com/cwood/ps2mc/releases), verify it, and put
+the binary on your `PATH`:
+
 ```sh
-git clone <repo> && cd ps2mc
-make build          # builds ./bin/ps2mc
+version=v0.1.0
+os=linux                 # or darwin
+arch=amd64               # or arm64
+base="https://github.com/cwood/ps2mc/releases/download/${version}"
+
+curl -LO "${base}/ps2mc-${version}-${os}-${arch}.tar.gz"
+curl -LO "${base}/SHA256SUMS"
+sha256sum --ignore-missing -c SHA256SUMS
+
+tar -xzf "ps2mc-${version}-${os}-${arch}.tar.gz"
+sudo install "ps2mc-${version}-${os}-${arch}/ps2mc" /usr/local/bin/ps2mc
 ```
 
-Requires Go 1.27. The mount command additionally needs FUSE: Linux has it in
-the kernel, macOS needs macFUSE. Everything else is pure Go and builds on
-Windows too.
+Windows builds ship as a `.zip` holding `ps2mc.exe`. On macOS use `shasum -a
+256` in place of `sha256sum`.
+
+The binaries are static and need nothing installed. The mount command is the
+exception: it needs FUSE, which Linux has in the kernel and macOS gets from
+macFUSE. On Windows `mount` is a stub that says so; every other command
+works there.
+
+To build from source instead, see [Development](#development).
 
 ## Usage
 
@@ -122,11 +144,19 @@ ps2mc convert card.mcd out.ps2 --to ecc
 
 ## Development
 
+Requires Go 1.27.
+
 ```sh
+git clone https://github.com/cwood/ps2mc && cd ps2mc
+
+make build    # builds ./bin/ps2mc
 make test     # go test ./... with fixture paths wired up
 make lint     # golangci-lint when present, else vet + gofmt
-make vet fmt build clean
+make all      # fmt, vet, lint, test, build
 ```
+
+`make vet`, `make fmt` and `make clean` are there too; `make help` lists the
+lot with the fixture paths it resolved.
 
 Tests need two fixtures and skip cleanly without them:
 
@@ -140,6 +170,11 @@ Tests need two fixtures and skip cleanly without them:
 - `testdata/ecc_vectors.txt` — reference ECC output, tracked.
 
 Override either with `PS2MC_FIXTURES` and `ECC_VECTORS`.
+
+Every pull request is expected to add a line to the `Unreleased` section of
+`CHANGELOG.txt`; CI checks for it, and the `no-changelog` label skips the check
+for changes that do not warrant a release note. Tagging `vX.Y.Z` turns that
+section into the release notes and the version heading.
 
 The ECC implementation is verified against mymc+ on 32 vectors including the
 all-zero and all-`0xFF` cases. A card written with wrong ECC is silently
