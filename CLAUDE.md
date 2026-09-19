@@ -94,8 +94,11 @@ mymc+ cannot read the raw layout, so convert first:
 - **`golangci-lint` may be built against an older Go** than the toolchain and
   refuse to run. `make lint` surfaces that rather than hiding it, which means
   `make all` fails at that step. Rebuild it with `go install`.
-- FUSE is Linux and macOS only. `cmd/ps2mc/mount_unsupported.go` stubs the
-  command on Windows so the rest of the tool still builds there.
+- FUSE is Linux and macOS only, so `ps2mc/fusefs` and `cmd/ps2mc/mount_fuse.go`
+  are constrained to those two and `cmd/ps2mc/mount_unsupported.go` stubs the
+  command everywhere else. The constraint belongs on the package itself, not
+  only on its caller: `go build ./...` compiles every package in the module
+  whether or not anything imports it.
 
 ## Conventions
 

@@ -1,3 +1,5 @@
+//go:build linux || darwin
+
 // Package fusefs exposes a PlayStation 2 memory card image as a FUSE
 // filesystem, so a card can be browsed and edited with ordinary tools.
 //

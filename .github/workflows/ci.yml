@@ -61,8 +61,9 @@ jobs:
           - { goos: linux, goarch: arm64 }
           - { goos: darwin, goarch: amd64 }
           - { goos: darwin, goarch: arm64 }
-          # Windows has no FUSE support in go-fuse; the mount command is
-          # stubbed there and the rest of the tool still builds.
+          # go-fuse supports Linux and macOS only; elsewhere the fusefs
+          # package drops out and the mount command is stubbed, so the rest
+          # of the tool still builds.
           - { goos: windows, goarch: amd64 }
     steps:
       - uses: actions/checkout@v4

@@ -1,9 +1,10 @@
-//go:build windows
+//go:build !linux && !darwin
 
 package main
 
 import (
-	"errors"
+	"fmt"
+	"runtime"
 
 	"github.com/spf13/cobra"
 )
@@ -17,8 +18,8 @@ func mountCmd() *cobra.Command {
 		Short: "Mount the card as a filesystem (unavailable on this platform)",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return errors.New("mount requires FUSE, which is unavailable on Windows; " +
-				"use install, extract and ls instead")
+			return fmt.Errorf("mount requires FUSE, which is unavailable on %s; "+
+				"use install, extract and ls instead", runtime.GOOS)
 		},
 	}
 }
