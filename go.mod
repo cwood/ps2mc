@@ -1,4 +1,4 @@
-module ps2mc
+module github.com/cwood/ps2mc
 
 go 1.27
 

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"ps2mc/ps2mc/image"
+	"github.com/cwood/ps2mc/ps2mc/image"
 )
 
 // TestWriteReadBack installs a file and reads it back, on both page layouts.

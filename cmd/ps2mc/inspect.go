@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"ps2mc/ps2mc"
-	"ps2mc/ps2mc/bootcard"
+	"github.com/cwood/ps2mc/ps2mc"
+	"github.com/cwood/ps2mc/ps2mc/bootcard"
 )
 
 func infoCmd() *cobra.Command {

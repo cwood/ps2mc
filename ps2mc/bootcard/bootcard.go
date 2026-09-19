@@ -15,7 +15,7 @@ import (
 	"sort"
 	"strings"
 
-	"ps2mc/ps2mc"
+	"github.com/cwood/ps2mc/ps2mc"
 )
 
 // Kind is the boot software a card appears to carry.

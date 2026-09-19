@@ -22,7 +22,7 @@ import (
 	gofs "github.com/hanwen/go-fuse/v2/fs"
 	"github.com/hanwen/go-fuse/v2/fuse"
 
-	"ps2mc/ps2mc"
+	"github.com/cwood/ps2mc/ps2mc"
 )
 
 // state is shared by every node. The card is a single mutable handle with FAT

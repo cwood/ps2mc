@@ -11,6 +11,8 @@ Unreleased
 Changed
   - README installs from the release archives rather than from source, and
     building from source moved to a Development section.
+  - The module path is github.com/cwood/ps2mc rather than a bare ps2mc, so
+    the packages can be imported, `go install`ed and documented on pkg.go.dev.
 
 
 0.1.0 — 2026-09-19
