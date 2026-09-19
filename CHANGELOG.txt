@@ -21,3 +21,12 @@ Added
   - Boot card identification for FMCB and PS2BBL, with payload hashing to
     group cards that are the same install.
   - Command line interface with twelve subcommands and shell completion.
+
+Fixed
+  - Constrain the fusefs package to Linux and macOS. The build tag lived only
+    on the mount command, so `go build ./...` still compiled go-fuse on
+    Windows and failed.
+
+Changed
+  - Releases take their notes from the Unreleased section and rotate it into a
+    version heading, and pull requests must record their change here.

@@ -3,12 +3,40 @@ name: ci
 on:
   push:
     branches: [main, master]
+  # labeled/unlabeled so the changelog check re-runs when the skip label is
+  # applied or removed, rather than needing a manual re-run.
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
 
 jobs:
+  # Every pull request records what it changed. Apply the `no-changelog` label
+  # to skip this for changes with nothing worth a release note.
+  changelog:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'pull_request' &&
+      !contains(github.event.pull_request.labels.*.name, 'no-changelog')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require a CHANGELOG.txt entry
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags origin "$BASE"
+          if git diff --name-only FETCH_HEAD...HEAD | grep -qx CHANGELOG.txt; then
+            echo "CHANGELOG.txt updated."
+            exit 0
+          fi
+          echo "This pull request does not touch CHANGELOG.txt."
+          echo "Add a line under the Unreleased section describing the change,"
+          echo "or apply the 'no-changelog' label if it does not warrant one."
+          exit 1
+
   test:
     runs-on: ubuntu-latest
     steps:

@@ -12,10 +12,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: stable
           cache: true
+
+      # The Unreleased section becomes both the release notes and the version
+      # heading, so the two cannot drift apart. An empty section fails the
+      # release: every change is supposed to have landed a changelog line.
+      # Built once rather than `go run`, which collapses any nonzero exit
+      # status to 1 and so hides status 2 from the rotation step below. The
+      # binary also outlives the checkout switch to main.
+      - name: Prepare release notes
+        run: |
+          go build -o "$RUNNER_TEMP/changelog" ./internal/changelog
+          "$RUNNER_TEMP/changelog" "${GITHUB_REF_NAME#v}"
+          cat NOTES.md
 
       - name: Build binaries
         run: |
@@ -44,24 +58,30 @@ jobs:
           (cd dist && sha256sum ./* > SHA256SUMS)
           ls -l dist
 
-      # The section for this tag is taken from CHANGELOG.txt so the release
-      # notes and the changelog cannot drift apart.
-      - name: Extract release notes
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          awk -v v="$version" '
-            $0 ~ "^"v" " || $0 ~ "^"v"$" { found=1; next }
-            found && /^[0-9]+\.[0-9]+\.[0-9]+/ { exit }
-            found && !/^-+$/ { print }
-          ' CHANGELOG.txt > NOTES.md
-          if [ ! -s NOTES.md ]; then
-            echo "No changelog entry found for ${GITHUB_REF_NAME}." > NOTES.md
-          fi
-          cat NOTES.md
-
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
           body_path: NOTES.md
           draft: false
+
+      # Last, so a branch protection rule rejecting the push cannot stop the
+      # release itself from going out. Exit 2 means main is already rotated.
+      - name: Rotate CHANGELOG.txt on main
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          git fetch --no-tags origin main
+          git checkout -f -B main origin/main
+          set +e
+          "$RUNNER_TEMP/changelog" "$version"
+          rc=$?
+          set -e
+          [ "$rc" -eq 0 ] || [ "$rc" -eq 2 ] || exit "$rc"
+          if git diff --quiet -- CHANGELOG.txt; then
+            echo "CHANGELOG.txt on main already rotated for ${version}"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Start a new Unreleased section after ${version}" -- CHANGELOG.txt
+          git push origin HEAD:main
