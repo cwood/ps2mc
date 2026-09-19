@@ -1,0 +1,11 @@
+# Build output
+/bin/
+
+# Memory card images used by tests. These are 8 MiB binaries generated with
+# mymc+; the tests skip cleanly when they are absent, so they are not worth
+# carrying in the repository.
+/testdata/fixtures/
+
+# Working images
+*.mcd
+*.ps2
