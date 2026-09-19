@@ -1,0 +1,76 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+
+      - name: Format
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "gofmt needed on:"; echo "$unformatted"; exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
+      # Card fixtures are 8 MiB binaries and are not tracked, so they are
+      # generated here with the same reference tool the ECC vectors came from.
+      # Tests that need them skip when absent, so this keeps coverage honest.
+      - name: Generate test fixtures
+        run: |
+          python3 -m pip install --quiet mymcplus
+          mkdir -p testdata/fixtures
+          python3 -m mymcplus testdata/fixtures/test-ecc.ps2 format -c 8192 -f
+          python3 -m mymcplus testdata/fixtures/test-raw.ps2 format -c 8192 -f -e
+          for img in test-ecc test-raw; do
+            python3 -m mymcplus "testdata/fixtures/$img.ps2" mkdir APPS
+            printf 'hello from the reference tool' > HELLO.TXT
+            head -c 3000 /dev/urandom > BIN.DAT
+            python3 -m mymcplus "testdata/fixtures/$img.ps2" add -d APPS HELLO.TXT BIN.DAT
+          done
+          rm -f HELLO.TXT BIN.DAT
+
+      - name: Test
+        run: make test
+
+      - name: Build
+        run: make build
+
+  cross:
+    name: build (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { goos: linux, goarch: amd64 }
+          - { goos: linux, goarch: arm64 }
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+          # Windows has no FUSE support in go-fuse; the mount command is
+          # stubbed there and the rest of the tool still builds.
+          - { goos: windows, goarch: amd64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+      - run: go build ./...
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}

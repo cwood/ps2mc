@@ -1,0 +1,67 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+
+      - name: Build binaries
+        run: |
+          version="${GITHUB_REF_NAME}"
+          mkdir -p dist
+          while read -r goos goarch; do
+            name="ps2mc-${version}-${goos}-${goarch}"
+            ext=""
+            [ "$goos" = "windows" ] && ext=".exe"
+            GOOS="$goos" GOARCH="$goarch" CGO_ENABLED=0 \
+              go build -trimpath -ldflags "-s -w" -o "dist/${name}/ps2mc${ext}" ./cmd/ps2mc
+            cp README.md LICENSE CHANGELOG.txt "dist/${name}/"
+            if [ "$goos" = "windows" ]; then
+              (cd dist && zip -qr "${name}.zip" "${name}")
+            else
+              tar -czf "dist/${name}.tar.gz" -C dist "${name}"
+            fi
+            rm -rf "dist/${name}"
+          done <<'TARGETS'
+          linux amd64
+          linux arm64
+          darwin amd64
+          darwin arm64
+          windows amd64
+          TARGETS
+          (cd dist && sha256sum ./* > SHA256SUMS)
+          ls -l dist
+
+      # The section for this tag is taken from CHANGELOG.txt so the release
+      # notes and the changelog cannot drift apart.
+      - name: Extract release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '
+            $0 ~ "^"v" " || $0 ~ "^"v"$" { found=1; next }
+            found && /^[0-9]+\.[0-9]+\.[0-9]+/ { exit }
+            found && !/^-+$/ { print }
+          ' CHANGELOG.txt > NOTES.md
+          if [ ! -s NOTES.md ]; then
+            echo "No changelog entry found for ${GITHUB_REF_NAME}." > NOTES.md
+          fi
+          cat NOTES.md
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          body_path: NOTES.md
+          draft: false

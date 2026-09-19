@@ -1,0 +1,23 @@
+Changelog
+=========
+
+All notable changes to ps2mc are recorded here. Versions follow semantic
+versioning; dates are ISO 8601.
+
+
+Unreleased
+----------
+
+Added
+  - Memory card filesystem: superblock, two-level indirect FAT, directory
+    entries, file read and write, directory creation and removal.
+  - Support for both page layouts. The layout is determined by probing each
+    stride, because file size cannot distinguish them reliably.
+  - ECC implementation verified against mymc+ on 32 reference vectors.
+  - Whole-image snapshots with SHA-256 manifests. Commands that modify a card
+    snapshot it first and abort if the snapshot fails.
+  - FUSE mount, so a card can be edited with a file manager or cp. Creates and
+    removes its own mountpoint.
+  - Boot card identification for FMCB and PS2BBL, with payload hashing to
+    group cards that are the same install.
+  - Command line interface with twelve subcommands and shell completion.
