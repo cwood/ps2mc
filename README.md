@@ -2,6 +2,7 @@
 
 [![ci](https://github.com/cwood/ps2mc/actions/workflows/ci.yml/badge.svg)](https://github.com/cwood/ps2mc/actions/workflows/ci.yml)
 [![licence: GPL-3.0-or-later](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue)](LICENSE)
+[![go reference](https://pkg.go.dev/badge/github.com/cwood/ps2mc.svg)](https://pkg.go.dev/github.com/cwood/ps2mc)
 
 Read and write PlayStation 2 memory card images.
 
@@ -52,7 +53,13 @@ exception: it needs FUSE, which Linux has in the kernel and macOS gets from
 macFUSE. On Windows `mount` is a stub that says so; every other command
 works there.
 
-To build from source instead, see [Development](#development).
+With a Go toolchain you can install it straight from source instead:
+
+```sh
+go install github.com/cwood/ps2mc/cmd/ps2mc@latest
+```
+
+To work on it, see [Development](#development).
 
 ## Usage
 
@@ -144,7 +151,10 @@ ps2mc convert card.mcd out.ps2 --to ecc
 
 ## Development
 
-Requires Go 1.27.
+Requires Go 1.27. The library API is documented on
+[pkg.go.dev](https://pkg.go.dev/github.com/cwood/ps2mc); `ps2mc/` is the
+filesystem, `ps2mc/image/` the on-disk layout and ECC, `ps2mc/bootcard/` boot
+software identification and `ps2mc/fusefs/` the FUSE mount.
 
 ```sh
 git clone https://github.com/cwood/ps2mc && cd ps2mc

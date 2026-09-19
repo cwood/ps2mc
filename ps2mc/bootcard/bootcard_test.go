@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"ps2mc/ps2mc"
-	"ps2mc/ps2mc/bootcard"
+	"github.com/cwood/ps2mc/ps2mc"
+	"github.com/cwood/ps2mc/ps2mc/bootcard"
 )
 
 // card copies a fixture and returns a writable card.

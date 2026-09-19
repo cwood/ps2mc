@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"ps2mc/ps2mc"
-	"ps2mc/ps2mc/fusefs"
+	"github.com/cwood/ps2mc/ps2mc"
+	"github.com/cwood/ps2mc/ps2mc/fusefs"
 )
 
 // mount serves a copy of a fixture card and returns its mountpoint.

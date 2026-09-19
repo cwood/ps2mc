@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fmt"
 
-	"ps2mc/ps2mc/image"
+	"github.com/cwood/ps2mc/ps2mc/image"
 )
 
 const (
